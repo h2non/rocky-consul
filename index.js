@@ -6,7 +6,7 @@ const consulBasePath = '/v1/catalog/service/'
 const requiredParams = ['servers', 'service']
 const interval = 60 * 1000
 
-exports = module.exports = function (params) {
+module.exports = exports = function (params) {
   var opts = assign({ interval: interval }, params)
   var consul = new Consul(opts)
 
@@ -51,6 +51,7 @@ Consul.prototype.update = function (cb) {
   this.updating = true
 
   this.request(url, function (err, servers) {
+    this.updating = false
     if (err || !servers) { return cb(err) }
 
     var urls = mapServers(servers, this.opts)

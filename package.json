@@ -1,7 +1,7 @@
 {
   "name": "rocky-consul",
   "version": "0.1.0",
-  "description": "Consul middleware for rocky HTTP proxy",
+  "description": "Rocky middleware for service discovery and balancing using Consul",
   "repository": "h2non/rocky-consul",
   "author": "Tomas Aparicio",
   "license": "MIT",
@@ -9,16 +9,14 @@
     "http",
     "proxy",
     "http-proxy",
-    "reverse",
-    "migration",
-    "migrate",
-    "repeat",
     "replay",
-    "forward",
-    "traffic",
-    "gateway",
-    "router",
-    "middleware"
+    "rocky",
+    "consul",
+    "balacing",
+    "balancer",
+    "reactive",
+    "discovery",
+    "service"
   ],
   "engines": {
     "node": ">= 0.12"

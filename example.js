@@ -6,7 +6,7 @@ var proxy = rocky()
 // Plug in the middleware
 proxy.use(consul({
   // Servers refresh interval
-  interval: 5000,
+  interval: 10000,
   // App service name (required)
   service: 'web',
   // Use a custom datacenter (optional)
