@@ -11,8 +11,6 @@ proxy.use(consul({
   service: 'web',
   // Use a custom datacenter (optional)
   datacenter: 'ams2',
-  // Use a custom service tag (optional)
-  //tag: '1.0',
   // Consul servers pool
   servers: [
     'http://demo.consul.io',

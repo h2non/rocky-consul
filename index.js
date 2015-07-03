@@ -1,5 +1,4 @@
-const http = require('http')
-const https = require('https')
+const request = require('got')
 const parseUrl = require('url').parse
 const assign = require('object-assign')
 
@@ -12,12 +11,12 @@ exports = module.exports = function (params) {
   var consul = new Consul(opts)
 
   return function (req, res, next) {
-    var servers = opts.servers
-    if (!servers.length) return next()
-
     consul.servers(function (err, urls) {
-      if (err) return next(err)
+      if (err || !urls || !urls.length) {
+        return proxyError(res)
+      }
 
+      // Expose the server URLs to balance
       req.rocky.options.balance = urls
       next()
     })
@@ -28,83 +27,81 @@ exports.Consul = Consul
 
 function Consul(opts) {
   this.opts = opts
-  this.urls = []
-  this.updated = Date.now()
+  this.urls = opts.defaultServers || []
 
   requiredParams.forEach(function (param) {
     if (!opts[param]) {
       throw new TypeError('Missing required param: ' + param)
     }
   })
+
+  this.updateInterval()
 }
 
 Consul.prototype.servers = function (cb) {
-  if (this.isOutdated() === false) {
+  if (this.urls.length) {
     return cb(null, this.urls)
   }
-  this.refresh(cb)
+  this.update(cb)
 }
 
-Consul.prototype.isOutdated = function () {
-  return this.urls.length === 0
-    && this.opts.interval > (Date.now() - this.updated)
-}
-
-Consul.prototype.refresh = function (cb) {
-  var self = this
+Consul.prototype.update = function (cb) {
   var url = permute(this.opts.servers)
+  cb = cb || function () {}
+  this.updating = true
 
-  this.request(url, onRefresh)
+  this.request(url, function (err, servers) {
+    if (err || !servers) { return cb(err) }
 
-  function onRefresh(err, servers) {
-    if (err) return cb(err)
-
-    var urls = mapServers(servers, self.opts)
+    var urls = mapServers(servers, this.opts)
     if (urls && urls.length) {
-      self.urls = urls
-      self.updated = Date.now()
+      this.urls = urls
     }
 
-    cb(null, self.urls)
-  }
+    cb(null, this.urls)
+  }.bind(this))
+}
+
+Consul.prototype.updateInterval = function () {
+  this.interval = setInterval(function () {
+    if (this.updating) { return }
+    this.update()
+  }.bind(this), this.opts.interval)
 }
 
 Consul.prototype.request = function (url, cb) {
   var opts = this.opts
-  var parts = parseUrl(url)
-  var path = consulBasePath + this.opts.service
+  var timeout = +opts.timeout || 5000
+  var path = consulBasePath + opts.service
+  var targetUrl = url + path
 
-  var params = ['tag', 'datacenter'].map(function (param) {
-    var value = opts[param]
-    return value ? param + '=' + value : ''
-  }).join('&')
-  path += '?' + params
-
-  var client = ~url.indexOf('https://') ? https : http
-  client.request({
-    method: 'GET',
-    hostname: parts.hostname,
-    port: parts.port,
-    auth: parts.auth,
-    path: path
-  }, handler)
-  .on('error', cb)
-  .end()
-
-  function handler(res) {
-    if (res.statusCode >= 400) {
-      return cb(new Error('Invalid response status'))
-    }
-
-    var body = ''
-    res.setEncoding('utf8')
-    res.on('data', function (chunk) {
-      body += chunk
-    })
-    res.on('end', function () {
-      cb(null, JSON.parse(body))
-    })
+  var query = {}
+  if (opts.datacenter) {
+    query = opts.datacenter
   }
+  if (opts.tag) {
+    query.tag = opts.tag
+  }
+
+  var httpOpts = {
+    query: query,
+    timeout: timeout,
+    auth: opts.auth,
+    headers: opts.headers
+  }
+
+  request(targetUrl, httpOpts, function handler(err, data, res) {
+    if (err || res.statusCode >= 400 || !data) {
+      return cb(err || 'Invalid response')
+    }
+    cb(null, JSON.parse(data))
+  })
+}
+
+function proxyError(res) {
+  var message = 'Proxy error: cannot retrieve servers'
+  res.writeHead(502, {'Content-Type': 'application/json'})
+  res.end(JSON.stringify({ message: message }))
 }
 
 function mapServers(list, opts) {
