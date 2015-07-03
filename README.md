@@ -1,4 +1,4 @@
-# rocky-consul
+# rocky-consul [![Build Status](https://api.travis-ci.org/h2non/rocky-consul.svg?branch=master&style=flat)](https://travis-ci.org/h2non/rocky-consul) [![NPM](https://img.shields.io/npm/v/rocky-consul.svg)](https://www.npmjs.org/package/rocky-consul)
 
 [rocky](https://github.com/h2non/rocky) middleware for service discovery and balancing using [Consul](https://consul.io).
 
@@ -12,9 +12,15 @@
 <td><b>Rocky</b></td><td>+0.1</td>
 </tr>
 <tr>
-<td><b>Type</b></td><td>generic</td>
+<td><b>Scope</b></td><td>global / route</td>
 </tr>
 </table>
+
+## Installation
+
+```
+npm install rocky-consul --save
+```
 
 ## Usage
 
