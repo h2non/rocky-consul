@@ -1,8 +1,6 @@
 # rocky-consul [![Build Status](https://api.travis-ci.org/h2non/rocky-consul.svg?branch=master&style=flat)](https://travis-ci.org/h2non/rocky-consul) [![NPM](https://img.shields.io/npm/v/rocky-consul.svg)](https://www.npmjs.org/package/rocky-consul)
 
-[rocky](https://github.com/h2non/rocky) middleware for service discovery and balancing using [Consul](https://consul.io).
-
-Via this middleware you can easily setup a reverse HTTP proxy powered by rocky with dynamic balancing using Consul for service discovery.
+[rocky](https://github.com/h2non/rocky) middleware to easily setup a reverse HTTP proxy with dynamic balancing using [Consul](https://consul.io) for service discovery.
 
 <table>
 <tr>
