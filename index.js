@@ -4,13 +4,13 @@ const assign = require('object-assign')
 
 const consulBasePath = '/v1/catalog/service/'
 const requiredParams = ['servers', 'service']
-const interval = 60 * 1000
+const interval = 60 * 2 * 1000
 
 module.exports = exports = function (params) {
   var opts = assign({ interval: interval }, params)
   var consul = new Consul(opts)
 
-  return function (req, res, next) {
+  function middleware(req, res, next) {
     consul.servers(function (err, urls) {
       if (err || !urls || !urls.length) {
         return proxyError(res)
@@ -21,6 +21,11 @@ module.exports = exports = function (params) {
       next()
     })
   }
+
+  // Explose the Consul client instance
+  middleware.consul = consul
+
+  return middleware
 }
 
 exports.Consul = Consul
@@ -35,7 +40,7 @@ function Consul(opts) {
     }
   })
 
-  this.updateInterval()
+  this.startInterval()
 }
 
 Consul.prototype.servers = function (cb) {
@@ -48,11 +53,18 @@ Consul.prototype.servers = function (cb) {
 Consul.prototype.update = function (cb) {
   var url = permute(this.opts.servers)
   cb = cb || function () {}
-  this.updating = true
 
+  this.updating = true
   this.request(url, function (err, servers) {
     this.updating = false
-    if (err || !Array.isArray(servers)) { return cb(err) }
+
+    if (this.opts.onUpdate) {
+      this.opts.onUpdate(err, servers)
+    }
+
+    if (err || !Array.isArray(servers)) {
+      return cb(err)
+    }
 
     var urls = mapServers(servers, this.opts)
     if (urls && urls.length) {
@@ -63,11 +75,18 @@ Consul.prototype.update = function (cb) {
   }.bind(this))
 }
 
-Consul.prototype.updateInterval = function () {
+Consul.prototype.startInterval = function () {
   this.interval = setInterval(function () {
     if (this.updating) { return }
     this.update()
   }.bind(this), this.opts.interval)
+}
+
+Consul.prototype.stopInterval = function () {
+  if (this.interval) {
+    clearInterval(this.interval)
+  }
+  this.interval = null
 }
 
 Consul.prototype.request = function (url, cb) {

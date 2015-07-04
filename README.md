@@ -2,7 +2,7 @@
 
 [rocky](https://github.com/h2non/rocky) middleware for service discovery and balancing using [Consul](https://consul.io).
 
-**Work in progress**e
+Via this middleware you can easily setup a reverse HTTP proxy powered by rocky with dynamic balancing using Consul for service discovery.
 
 <table>
 <tr>
@@ -62,18 +62,18 @@ Plug in as route level middleware
 proxy
   .get('/download/:id')
   .use(consul({
-  // Servers refresh interval (default to 60000)
-  interval: 60 * 5 * 1000,
-  // App service name (required)
-  service: 'web',
-  // Use a custom datacenter (optional)
-  datacenter: 'ams2',
-  // Consul servers pool
-  servers: [
-    'http://demo.consul.io',
-    'http://demo.consul.io'
-  ]
-}))
+    // Servers refresh interval (default to 60000)
+    interval: 60 * 5 * 1000,
+    // App service name (required)
+    service: 'web',
+    // Use a custom datacenter (optional)
+    datacenter: 'ams2',
+    // Consul servers pool
+    servers: [
+      'http://demo.consul.io',
+      'http://demo.consul.io'
+    ]
+  }))
 
 // Handle the rest of the traffic without using Consul
 proxy.all('/*')
@@ -86,7 +86,9 @@ console.log('Rocky server started')
 
 ## API
 
-### consul(options)
+### consul(options) `=>` Function(req, res, next)
+
+Return a middleware `function` with the Consul client as static property `function.consul`.
 
 #### Options
 
@@ -97,9 +99,32 @@ console.log('Rocky server started')
 - **defaultServers** `array<string>` - Optional list of default servers.
 - **protocol** `string` - Transport URI protocol. Default to `http`
 - **timeout** `number` - Consul server timeout in miliseconds. Default to `5000` = 5 seconds
-- **interval** `number` - Consul servers update interval in miliseconds. Default to `60000` = 1 minute
+- **interval** `number` - Consul servers update interval in miliseconds. Default to `120000` = 2 minutes
 - **headers** `object` - Map of key-value headers to send to Consul
 - **auth** `string` - Basic authentication for Consul. E.g: `user:p@s$`
+
+### Consul(options)
+
+Internally used micro Consul client interface.
+
+#### consul#servers(cb)
+
+Returns the Consul servers for the given service.
+Passed arguments to the callback are: `cb(err, servers)`.
+
+#### consul#update(cb)
+
+Perform the servers update asking to Consul
+Passed arguments to the callback are: `cb(err, servers)`.
+
+#### consul#startInternval()
+
+Start the servers update interval as recurrent job for the given miliseconds defined at `options.interval`.
+You should not call this method unless you already called `stopInterval()`.
+
+#### consul#stopInternval()
+
+Stop server update interval process.
 
 ## License
 

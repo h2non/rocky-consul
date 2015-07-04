@@ -2,26 +2,133 @@ const nock = require('nock')
 const expect = require('chai').expect
 const consul = require('..')
 
-suite('consul', function () {
-  var optionsStub = null
+const noop = function () {}
 
-  beforeEach(function () {
-    optionsStub = {
-      store: {},
-      set: function (key, val) {
-        this.store[key] = val
-      }
+suite('consul', function () {
+  var consulResponse = [
+    {
+      "Node": "nyc3-worker-1",
+      "Address": "127.0.0.1",
+      "ServiceID": "web",
+      "ServiceName": "web",
+      "ServiceAddress": "",
+      "ServicePort": 80
+    }
+  ]
+
+  test('valid', function (done) {
+    nock('http://consul')
+      .get('/v1/catalog/service/web?')
+      .reply(200, consulResponse)
+
+    var md = consul({
+      service: 'web',
+      servers: ['http://consul']
+    })
+
+    var req = { rocky: { options: {} } }
+    var res = { end: noop }
+
+    md(req, res, assert)
+
+    function assert(err) {
+      expect(err).to.be.undefined
+      expect(req.rocky.options.balance).to.be.deep.equal(['http://127.0.0.1:80'])
+      done()
     }
   })
 
-  test('define params', function () {
-    var md = consul({ service: 'test', servers: [] })
-    md({}, {}, function () {})
-    //expect(optionsStub.store.servers).to.be.an('array')
-    //expect(optionsStub.store.service).to.be.empty
+  test('invalid params', function (done) {
+    function missingService() {
+      consul({ servers: [] })
+    }
+
+    function missingServers() {
+      consul({ servers: 'web' })
+    }
+
+    expect(missingService).to.throw(TypeError)
+    expect(missingServers).to.throw(TypeError)
+    done()
   })
 
-  test('passes', function () {
+  test('invalid response', function (done) {
+    nock('http://consul')
+      .get('/v1/catalog/service/web?')
+      .reply(404)
 
+    var req = {}
+    var res = { end: assertEnd, writeHead: assertHead }
+
+    var md = consul({
+      service: 'web',
+      servers: ['http://consul']
+    })
+
+    md(req, res)
+
+    function assertHead(code, headers) {
+      expect(code).to.be.equal(502)
+      expect(headers).to.be.deep.equal({'Content-Type': 'application/json'})
+    }
+
+    function assertEnd(data) {
+      expect(data).to.be.match(/Proxy error: cannot retrieve/)
+      done()
+    }
+  })
+
+  test('timeout', function (done) {
+    nock('http://consul')
+      .get('/v1/catalog/service/web?')
+      .delay(2000)
+      .reply(404)
+
+    var req = {}
+    var res = { end: assertEnd, writeHead: assertHead }
+
+    var md = consul({
+      timeout: 100,
+      service: 'web',
+      servers: ['http://consul']
+    })
+
+    md(req, res)
+
+    function assertHead(code, headers) {
+      expect(code).to.be.equal(502)
+      expect(headers).to.be.deep.equal({'Content-Type': 'application/json'})
+    }
+
+    function assertEnd(data) {
+      expect(data).to.be.match(/Proxy error: cannot retrieve/)
+      done()
+    }
+  })
+
+  test('headers', function (done) {
+    nock('http://consul')
+      .get('/v1/catalog/service/web?')
+      .matchHeader('User-Agent', 'rocky')
+      .reply(200, consulResponse)
+
+    var req = { rocky: { options: {} } }
+    var res = {}
+
+    var md = consul({
+      headers: {
+        'User-Agent': 'rocky'
+      },
+      service: 'web',
+      servers: ['http://consul']
+    })
+
+    md(req, res, assert)
+
+    function assert(err) {
+      expect(err).to.be.undefined
+      expect(req.rocky.options.balance).to.be.deep.equal(['http://127.0.0.1:80'])
+      done()
+    }
   })
 })
