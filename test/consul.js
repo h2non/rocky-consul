@@ -131,4 +131,36 @@ suite('consul', function () {
       done()
     }
   })
+
+  test('default servers', function (done) {
+    nock('http://consul')
+      .get('/v1/catalog/service/web?')
+      .reply(200, consulResponse)
+
+    var req = { rocky: { options: {} } }
+    var res = {}
+
+    var md = consul({
+      service: 'web',
+      servers: ['http://consul'],
+      defaultServers: ['http://default'],
+      interval: 100
+    })
+
+    md(req, res, assert)
+
+    function assert(err) {
+      expect(err).to.be.undefined
+      expect(req.rocky.options.balance).to.be.deep.equal(['http://default'])
+
+      setTimeout(assertInterval, 150)
+    }
+
+    function assertInterval() {
+      md(req, res, function () {
+        expect(req.rocky.options.balance).to.be.deep.equal(['http://127.0.0.1:80'])
+        done()
+      })
+    }
+  })
 })

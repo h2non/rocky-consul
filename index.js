@@ -40,6 +40,7 @@ function Consul(opts) {
     }
   })
 
+  this.updating = false
   this.startInterval()
 }
 
