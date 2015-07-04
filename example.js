@@ -18,6 +18,7 @@ proxy.use(consul({
   ]
 }))
 
+// Handle all the traffic
 proxy.get('/*')
 
 proxy.listen(3000)

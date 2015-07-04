@@ -27,7 +27,8 @@
   "devDependencies": {
     "chai": "^3.0.0",
     "mocha": "^2.2.5",
-    "rocky": "^0.1.11"
+    "nock": "^2.7.0",
+    "rocky": "https://github.com/h2non/rocky#develop"
   },
   "dependencies": {
     "object-assign": "^3.0.0"

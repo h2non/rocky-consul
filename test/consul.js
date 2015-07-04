@@ -1,3 +1,4 @@
+const nock = require('nock')
 const expect = require('chai').expect
 const consul = require('..')
 

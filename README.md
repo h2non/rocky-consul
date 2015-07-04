@@ -2,17 +2,20 @@
 
 [rocky](https://github.com/h2non/rocky) middleware for service discovery and balancing using [Consul](https://consul.io).
 
-**Work in progress**
+**Work in progress**e
 
 <table>
 <tr>
 <td><b>Name</b></td><td>consul</td>
 </tr>
 <tr>
-<td><b>Rocky</b></td><td>+0.1</td>
+<td><b>Rocky</b></td><td>+0.2</td>
 </tr>
 <tr>
-<td><b>Scope</b></td><td>global / route</td>
+<td><b>Scope</b></td><td>global, route</td>
+</tr>
+<tr>
+<td><b>Type</b></td><td>forward / balance</td>
 </tr>
 </table>
 
@@ -29,8 +32,10 @@ var rocky = require('rocky')
 var consul = require('rocky-consul')
 
 var proxy = rocky()
+```
 
-// Plug in the middleware
+Plug in as global middleware
+```js
 proxy.use(consul({
   // Servers refresh interval (default to 60000)
   interval: 60 * 5 * 1000,
@@ -45,14 +50,45 @@ proxy.use(consul({
   ]
 }))
 
-// Handle all the trafficf4
+// Handle all the traffic
 proxy.all('/*')
 
 proxy.listen(3000)
-console.log('Rocky server listening on port: ' + 3000)
+console.log('Rocky server started')
 ```
 
-### Options
+Plug in as route level middleware
+```js
+proxy
+  .get('/download/:id')
+  .use(consul({
+  // Servers refresh interval (default to 60000)
+  interval: 60 * 5 * 1000,
+  // App service name (required)
+  service: 'web',
+  // Use a custom datacenter (optional)
+  datacenter: 'ams2',
+  // Consul servers pool
+  servers: [
+    'http://demo.consul.io',
+    'http://demo.consul.io'
+  ]
+}))
+
+// Handle the rest of the traffic without using Consul
+proxy.all('/*')
+  .forward('http://my.server')
+  .replay('http://old.server')
+
+proxy.listen(3000)
+console.log('Rocky server started')
+```
+
+## API
+
+### consul(options)
+
+#### Options
 
 - **service** `string` - Consul service. Required
 - **servers** `array<string>` - List of Consul servers URLs. Required

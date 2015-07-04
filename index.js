@@ -52,7 +52,7 @@ Consul.prototype.update = function (cb) {
 
   this.request(url, function (err, servers) {
     this.updating = false
-    if (err || !servers) { return cb(err) }
+    if (err || !Array.isArray(servers)) { return cb(err) }
 
     var urls = mapServers(servers, this.opts)
     if (urls && urls.length) {
