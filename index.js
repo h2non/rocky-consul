@@ -59,20 +59,21 @@ Consul.prototype.update = function (cb) {
   this.request(url, function (err, servers) {
     this.updating = false
 
-    if (this.opts.onUpdate) {
-      this.opts.onUpdate(err, servers)
-    }
-
     if (err || !Array.isArray(servers)) {
       return cb(err)
     }
 
     var urls = mapServers(servers, this.opts)
-    if (urls && urls.length) {
-      this.urls = urls
+    if (!urls || !urls.length) {
+      return cb(null, this.urls)
     }
 
-    cb(null, this.urls)
+    this.urls = urls
+    if (this.opts.onUpdate) {
+      this.opts.onUpdate(err, urls)
+    }
+
+    cb(null, urls)
   }.bind(this))
 }
 
@@ -105,13 +106,18 @@ Consul.prototype.request = function (url, cb) {
   }
 
   var httpOpts = {
+    url: targetUrl,
     query: query,
     timeout: timeout,
     auth: opts.auth,
     headers: opts.headers
   }
 
-  request(targetUrl, httpOpts, function handler(err, data, res) {
+  if (this.opts.onRequest) {
+    this.opts.onRequest(httpOpts)
+  }
+
+  request(httpOpts.url, httpOpts, function handler(err, data, res) {
     if (this.opts.onResponse) {
       this.opts.onResponse(err, data, res)
     }

@@ -163,4 +163,50 @@ suite('consul', function () {
       })
     }
   })
+
+  test('events', function (done) {
+    nock('http://consul')
+      .get('/v1/catalog/service/web?')
+      .reply(200, consulResponse)
+
+    var req = { rocky: { options: {} } }
+    var res = {}
+
+    var md = consul({
+      service: 'web',
+      servers: ['http://consul'],
+      onRequest: onRequest,
+      onUpdate: onUpdate,
+      onResponse: onResponse
+    })
+
+    md(req, res, assert)
+
+    function onUpdate(err, servers) {
+      expect(err).to.be.null
+      expect(servers).to.be.an('array')
+      expect(servers).to.have.length(1)
+      expect(servers[0]).to.be.equal('http://127.0.0.1:80')
+    }
+
+    function onResponse(err, data, res) {
+      expect(err).to.be.null
+      expect(data).to.be.a('string')
+      expect(data).to.match(/Node/)
+      expect(data).to.match(/Address/)
+      expect(res.statusCode).to.be.equal(200)
+      expect(res.headers).to.have.property('content-type').to.match(/application\/json/)
+    }
+
+    function onRequest(httpOpts) {
+      expect(httpOpts).to.be.an('object')
+      expect(httpOpts.url).to.be.equal('http://consul/v1/catalog/service/web')
+    }
+
+    function assert(err) {
+      expect(err).to.be.undefined
+      expect(req.rocky.options.balance).to.be.deep.equal(['http://127.0.0.1:80'])
+      done()
+    }
+  })
 })
