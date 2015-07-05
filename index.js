@@ -112,11 +112,15 @@ Consul.prototype.request = function (url, cb) {
   }
 
   request(targetUrl, httpOpts, function handler(err, data, res) {
+    if (this.opts.onResponse) {
+      this.opts.onResponse(err, data, res)
+    }
+
     if (err || res.statusCode >= 400 || !data) {
       return cb(err || 'Invalid response')
     }
     cb(null, JSON.parse(data))
-  })
+  }.bind(this))
 }
 
 function proxyError(res) {

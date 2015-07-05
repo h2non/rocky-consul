@@ -100,6 +100,8 @@ Return a middleware `function` with the Consul client as static property `functi
 - **interval** `number` - Consul servers update interval in miliseconds. Default to `120000` = 2 minutes
 - **headers** `object` - Map of key-value headers to send to Consul
 - **auth** `string` - Basic authentication for Consul. E.g: `user:p@s$`
+- **onUpdate** `function` - Executes this function on every servers update. Passed arguments are: `err, servers`
+- **onResponse** `function` - Executes this function on every Consul server response. Passed arguments are: `err, servers, res`
 
 ### Consul(options)
 
