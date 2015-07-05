@@ -22,7 +22,7 @@ module.exports = exports = function (params) {
     })
   }
 
-  // Explose the Consul client instance
+  // Expose the Consul client
   middleware.consul = consul
 
   return middleware
@@ -131,8 +131,10 @@ Consul.prototype.request = function (url, cb) {
 
 function proxyError(res) {
   var message = 'Proxy error: cannot retrieve servers'
-  res.writeHead(502, {'Content-Type': 'application/json'})
-  res.end(JSON.stringify({ message: message }))
+  if (!res.headersSent) {
+    res.writeHead(502, {'Content-Type': 'application/json'})
+    res.end(JSON.stringify({ message: message }))
+  }
 }
 
 function mapServers(list, opts) {

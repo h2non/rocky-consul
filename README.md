@@ -94,7 +94,7 @@ Return a middleware `function` with the Consul client as static property `functi
 - **servers** `array<string>` - List of Consul servers URLs. Required
 - **datacenter** `string` - Custom datacenter to use. If not defined the default one will be used
 - **tag** `string` - Use a specific tag for the service
-- **defaultServers** `array<string>` - Optional list of default servers.
+- **defaultServers** `array<string>` - Optional list of default target servers to balance. This avoid asking Consul the first time.
 - **protocol** `string` - Transport URI protocol. Default to `http`
 - **timeout** `number` - Consul server timeout in miliseconds. Default to `5000` = 5 seconds
 - **interval** `number` - Consul servers update interval in miliseconds. Default to `120000` = 2 minutes
