@@ -28,7 +28,7 @@
     "chai": "^3.0.0",
     "mocha": "^2.2.5",
     "nock": "^2.7.0",
-    "rocky": "^0.2.0"
+    "rocky": "^0.2.0-beta.0"
   },
   "dependencies": {
     "got": "^3.3.0",
