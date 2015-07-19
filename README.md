@@ -120,12 +120,12 @@ Passed arguments to the callback are: `cb(err, servers)`.
 Perform the servers update asking to Consul
 Passed arguments to the callback are: `cb(err, servers)`.
 
-#### consul#startInternval()
+#### consul#startInterval()
 
 Start the servers update interval as recurrent job for the given miliseconds defined at `options.interval`.
 You should not call this method unless you already called `stopInterval()`.
 
-#### consul#stopInternval()
+#### consul#stopInterval()
 
 Stop server update interval process.
 
