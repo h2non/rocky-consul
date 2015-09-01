@@ -2,7 +2,7 @@
 
 [rocky](https://github.com/h2non/rocky) middleware to easily setup a reverse HTTP proxy with service discovery and load balancer using [Consul](https://consul.io).
 
-Essentially, this middleware will ask to Consul on every time interval (configurable) to retrieve a list of URLs of a specific service (e.g: API, CDN), and then it will provide them to `rocky` in order to balance the HTTP traffic between those URLs.
+Essentially, this middleware will ask to Consul on every interval (configurable) to retrieve a list of URLs of a specific service (e.g: API, CDN, storage), and then them will be provided to `rocky` in order to balance the incoming HTTP traffic between those URLs.
 
 <table>
 <tr>
