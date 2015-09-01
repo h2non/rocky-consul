@@ -1,6 +1,6 @@
 {
   "name": "rocky-consul",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Rocky HTTP proxy middleware for service discovery and balancing using Consul",
   "repository": "h2non/rocky-consul",
   "author": "Tomas Aparicio",

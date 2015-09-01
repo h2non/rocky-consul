@@ -28,6 +28,9 @@ module.exports = exports = function (params) {
   return middleware
 }
 
+// Expose Consul client
+exports.Consul = Consul
+
 function proxyError(res) {
   if (res.headersSent) return
   var message = 'Proxy error: cannot retrieve servers from Consul'
