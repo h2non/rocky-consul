@@ -12,11 +12,11 @@ module.exports = exports = function (params) {
 
   function middleware(req, res, next) {
     consul.servers(function (err, urls) {
-      if (err || !urls || !urls.length) {
+      if (err || !urls || !urls.length) {
         return proxyError(res)
       }
 
-      // Expose the server URLs to balance
+      // Expose to rocky the URLs to balance
       req.rocky.options.balance = urls
       next()
     })
@@ -98,11 +98,11 @@ Consul.prototype.request = function (url, cb) {
   var targetUrl = url + path
 
   var query = {}
-  if (opts.datacenter) {
-    query = opts.datacenter
-  }
   if (opts.tag) {
     query.tag = opts.tag
+  }
+  if (opts.datacenter) {
+    query.datacenter = opts.datacenter
   }
 
   var httpOpts = {
@@ -130,11 +130,10 @@ Consul.prototype.request = function (url, cb) {
 }
 
 function proxyError(res) {
-  var message = 'Proxy error: cannot retrieve servers'
-  if (!res.headersSent) {
-    res.writeHead(502, {'Content-Type': 'application/json'})
-    res.end(JSON.stringify({ message: message }))
-  }
+  if (res.headersSent) return
+  var message = 'Proxy error: cannot retrieve servers from Consul'
+  res.writeHead(502, {'Content-Type': 'application/json'})
+  res.end(JSON.stringify({ message: message }))
 }
 
 function mapServers(list, opts) {
