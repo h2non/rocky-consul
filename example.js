@@ -18,6 +18,23 @@ proxy.use(consul({
   ]
 }))
 
+// Plugin another middleware at route level only
+var route = proxy.get('/download')
+
+route.use(consul({
+  // Servers refresh interval
+  interval: 10000,
+  // App service name (required)
+  service: 'web',
+  // Use a custom datacenter (optional)
+  datacenter: 'ams2',
+  // Consul servers pool
+  servers: [
+    'http://demo.consul.io',
+    'http://demo.consul.io'
+  ]
+}))
+
 // Handle all the traffic
 proxy.get('/*')
 
